@@ -130,7 +130,7 @@ Example test_next_weekday:
     Having made the assertion, we can also ask Coq to verify it like
     this: *)
 
-Proof. simpl. reflexivity.  Qed.
+Proof. reflexivity.  Qed.
 
 (** The details are not important just now, but essentially this
     little script can be read as "The assertion we've just made can be
