@@ -311,14 +311,24 @@ Fixpoint even (n:nat) : bool :=
   | S (S n') => even n'
   end.
 
+
+Theorem neg_neg_b : forall b : bool,
+  negb (negb b) = b.
+Proof.
+  simpl.
+  destruct b. 
+  - reflexivity.
+  - reflexivity.
+Qed.
+
 Theorem even_S : forall n : nat,
   even (S n) = negb (even n).
 Proof.
   intros n. induction n as [| n' IHn'].
   - simpl. reflexivity.
-  - simpl. destruct n' as [| n''] eqn:E.
-    --simpl. reflexivity.
-(** [] *)
+  (** [] *)
+  - rewrite -> IHn'. simpl. rewrite -> neg_neg_b. reflexivity.
+Qed.
 
 (* ################################################################# *)
 (** * Proofs Within Proofs *)
@@ -516,7 +526,7 @@ Proof.
 *)
 
 (* Do not modify the following line: *)
-Definition manual_grade_for_add_comm_informal : option (nat*string) := None.
+(*Definition manual_grade_for_add_comm_informal : option (nat*string) := None.*)
 (** [] *)
 
 (** **** Exercise: 2 stars, standard, optional (eqb_refl_informal)
@@ -531,7 +541,7 @@ Definition manual_grade_for_add_comm_informal : option (nat*string) := None.
 *)
 
 (* Do not modify the following line: *)
-Definition manual_grade_for_eqb_refl_informal : option (nat*string) := None.
+(*Definition manual_grade_for_eqb_refl_informal : option (nat*string) := None.*)
 (** [] *)
 
 (* ################################################################# *)
@@ -545,7 +555,14 @@ Definition manual_grade_for_eqb_refl_informal : option (nat*string) := None.
 Theorem add_shuffle3 : forall n m p : nat,
   n + (m + p) = m + (n + p).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n m p. assert (H: n + (m + p) = n + m + p).
+  {
+    simpl. rewrite add_assoc. reflexivity. 
+  }
+  simpl. rewrite H.
+Abort.
+
+
 
 (** Now prove commutativity of multiplication.  You will probably want
     to look for (or define and prove) a "helper" theorem to be used in
@@ -554,7 +571,9 @@ Proof.
 Theorem mul_comm : forall m n : nat,
   m * n = n * m.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n m.
+  induction n as [| n'] eqn:E.
+   - cbn.
 (** [] *)
 
 (** **** Exercise: 2 stars, standard, optional (plus_leb_compat_l)
