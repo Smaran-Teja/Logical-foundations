@@ -5,8 +5,6 @@
 
 (* Suppress some annoying warnings from Coq: *)
 Set Warnings "-notation-overridden,-parsing,-deprecated-hint-without-locality".
-From LF Require Export Lists.
-
 (* ################################################################# *)
 (** * Polymorphism *)
 
@@ -148,13 +146,14 @@ Inductive grumble (X:Type) : Type :=
 
 (** Which of the following are well-typed elements of [grumble X] for
     some type [X]?  (Add YES or NO to each line.)
-      - [d (b a 5)]
-      - [d mumble (b a 5)]
-      - [d bool (b a 5)]
-      - [e bool true]
-      - [e mumble (b c 0)]
+      - [d (b a 5)] YES
+      - [d mumble (b a 5)] NO
+      - [d bool (b a 5)] NO
+      - [e bool true] NO
+      - [e mumble (b c 0)] 
       - [e bool (b c 0)]
-      - [c]  *)
+      - [c]  NO
+      *)
 (* FILL IN HERE *)
 End MumbleGrumble.
 (** [] *)
@@ -387,17 +386,26 @@ Definition list123''' := [1; 2; 3].
 Theorem app_nil_r : forall (X:Type), forall l:list X,
   l ++ [] = l.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. induction l.
+  -- reflexivity.
+  -- cbn. rewrite -> IHl. reflexivity.
+Qed.
 
 Theorem app_assoc : forall A (l m n:list A),
   l ++ m ++ n = (l ++ m) ++ n.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. induction l.
+  -- reflexivity.
+  -- cbn. rewrite IHl. reflexivity.
+Qed. 
 
 Lemma app_length : forall (X:Type) (l1 l2 : list X),
   length (l1 ++ l2) = length l1 + length l2.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. induction l1.
+  -- reflexivity.
+  -- cbn. rewrite IHl1. reflexivity.
+Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, standard (more_poly_exercises)
@@ -407,13 +415,19 @@ Proof.
 Theorem rev_app_distr: forall X (l1 l2 : list X),
   rev (l1 ++ l2) = rev l2 ++ rev l1.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. induction l1.
+  -- rewrite app_nil_r. reflexivity.
+  -- cbn. rewrite -> IHl1. rewrite app_assoc. reflexivity.
+Qed.
 
 Theorem rev_involutive : forall X : Type, forall l : list X,
   rev (rev l) = l.
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros x l. induction l.
+  -- reflexivity.
+  -- cbn. rewrite rev_app_distr. rewrite IHl. reflexivity.
+Qed.
+  (** [] *)
 
 (* ================================================================= *)
 (** ** Polymorphic Pairs *)
@@ -473,6 +487,8 @@ Fixpoint combine {X Y : Type} (lx : list X) (ly : list Y)
   | x :: tx, y :: ty => (x, y) :: (combine tx ty)
   end.
 
+Check @combine.
+Compute combine [1;2] [false;false;true;true].
 (** **** Exercise: 1 star, standard, optional (combine_checks)
 
     Try answering the following questions on paper and
@@ -496,13 +512,19 @@ Fixpoint combine {X Y : Type} (lx : list X) (ly : list Y)
     Fill in the definition of [split] below.  Make sure it passes the
     given unit test. *)
 
-Fixpoint split {X Y : Type} (l : list (X*Y)) : (list X) * (list Y)
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Fixpoint split {X Y : Type} (l : list (X*Y)) : (list X) * (list Y) :=
+  match l with 
+  | nil => (nil, nil)
+  | h :: t =>
+    let '(xs, ys) := split t in
+    (fst h :: xs,  snd h :: ys)
+  end.
 
 Example test_split:
   split [(1,false);(2,false)] = ([1;2],[false;false]).
+
 Proof.
-(* FILL IN HERE *) Admitted.
+  cbn. reflexivity. Qed.
 (** [] *)
 
 (* ================================================================= *)
@@ -551,8 +573,11 @@ Proof. reflexivity. Qed.
     [hd_error] function from the last chapter. Be sure that it
     passes the unit tests below. *)
 
-Definition hd_error {X : Type} (l : list X) : option X
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Definition hd_error {X : Type} (l : list X) : option X :=
+  match l with 
+  | nil => None
+  | h :: t => Some h
+  end. 
 
 (** Once again, to force the implicit arguments to be explicit,
     we can use [@] before the name of the function. *)
@@ -560,9 +585,9 @@ Definition hd_error {X : Type} (l : list X) : option X
 Check @hd_error : forall X : Type, list X -> option X.
 
 Example test_hd_error1 : hd_error [1;2] = Some 1.
- (* FILL IN HERE *) Admitted.
+Proof. cbn. reflexivity. Qed.
 Example test_hd_error2 : hd_error  [[1];[2]]  = Some [1].
- (* FILL IN HERE *) Admitted.
+Proof. cbn. reflexivity. Qed.
 (** [] *)
 
 (* ################################################################# *)
@@ -589,6 +614,13 @@ Definition doit3times {X : Type} (f : X->X) (n : X) : X :=
 
 Check @doit3times : forall X : Type, (X -> X) -> X -> X.
 
+Definition minustwo (n : nat) : nat :=
+  match n with
+  | O => O
+  | S O => O
+  | S (S n') => n'
+  end.
+
 Example test_doit3times: doit3times minustwo 9 = 3.
 Proof. reflexivity. Qed.
 
@@ -611,12 +643,46 @@ Fixpoint filter {X:Type} (test: X->bool) (l:list X) : list X :=
     else filter test t
   end.
 
+
+Fixpoint even (n:nat) : bool :=
+  match n with
+  | O        => true
+  | S O      => false
+  | S (S n') => even n'
+  end.
+
 (** For example, if we apply [filter] to the predicate [even]
     and a list of numbers [l], it returns a list containing just the
     even members of [l]. *)
 
 Example test_filter1: filter even [1;2;3;4] = [2;4].
 Proof. reflexivity. Qed.
+
+Fixpoint eqb (n m : nat) : bool :=
+  match n with
+  | O => match m with
+         | O => true
+         | S m' => false
+         end
+  | S n' => match m with
+            | O => false
+            | S m' => eqb n' m'
+            end
+  end.
+
+
+Fixpoint leb (n m : nat) : bool :=
+  match n with
+  | O => true
+  | S n' =>
+      match m with
+      | O => false
+      | S m' => leb n' m'
+      end
+  end.
+
+Notation "x =? y" := (eqb x y) (at level 70) : nat_scope.
+Notation "x <=? y" := (leb x y) (at level 70) : nat_scope.
 
 Definition length_is_1 {X : Type} (l : list X) : bool :=
   (length l) =? 1.
@@ -629,6 +695,10 @@ Proof. reflexivity. Qed.
 
 (** We can use [filter] to give a concise version of the
     [countoddmembers] function from the [Lists] chapter. *)
+
+
+Definition odd (n:nat) : bool :=
+  negb (even n).
 
 Definition countoddmembers' (l:list nat) : nat :=
   length (filter odd l).
@@ -679,16 +749,27 @@ Proof. reflexivity. Qed.
     and returns a list of just those that are even and greater than
     7. *)
 
-Definition filter_even_gt7 (l : list nat) : list nat
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Definition ltb (n m : nat) : bool :=
+  andb (leb n m) (negb (eqb n m)).
+
+
+Definition negb (b:bool) : bool :=
+  match b with
+  | true => false
+  | false => true
+  end.
+
+Definition filter_even_gt7 (l : list nat) : list nat :=
+  filter (fun n: nat => (andb (even n) (negb (ltb n 7)))) l.
 
 Example test_filter_even_gt7_1 :
   filter_even_gt7 [1;2;6;9;10;3;12;8] = [10;12;8].
- (* FILL IN HERE *) Admitted.
+Proof. cbn. reflexivity. Qed.
 
 Example test_filter_even_gt7_2 :
   filter_even_gt7 [5;2;6;19;129] = [].
- (* FILL IN HERE *) Admitted.
+Proof. cbn. reflexivity. Qed.
+
 (** [] *)
 
 (** **** Exercise: 3 stars, standard (partition)
