@@ -14,7 +14,6 @@
     - more details on how to reason by case analysis. *)
 
 Set Warnings "-notation-overridden,-parsing,-deprecated-hint-without-locality".
-From LF Require Export Poly.
 
 (* ################################################################# *)
 (** * The [apply] Tactic *)
@@ -22,6 +21,14 @@ From LF Require Export Poly.
 (** We often encounter situations where the goal to be proved is
     _exactly_ the same as some hypothesis in the context or some
     previously proved lemma. *)
+
+Notation "x :: y" := (cons x y)
+                     (at level 60, right associativity).
+Notation "[ ]" := nil.
+Notation "[ x ; .. ; y ]" := (cons x .. (cons y []) ..).
+Notation "x ++ y" := (app x y)
+                     (at level 60, right associativity).
+
 
 Theorem silly1 : forall (n m : nat),
   n = m ->
@@ -71,13 +78,27 @@ Proof.
 (** **** Exercise: 2 stars, standard, optional (silly_ex)
 
     Complete the following proof using only [intros] and [apply]. *)
+
+Fixpoint even (n:nat) : bool :=
+  match n with
+  | O        => true
+  | S O      => false
+  | S (S n') => even n'
+  end.
+    
+
+
+Definition odd (n:nat) : bool :=
+  negb (even n).
+
 Theorem silly_ex : forall p,
   (forall n, even n = true -> even (S n) = false) ->
   (forall n, even n = false -> odd n = true) ->
   even p = true ->
   odd (S p) = true.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros p eq1 eq2 eq3. apply eq2. apply eq1. apply eq3.
+Qed. 
 (** [] *)
 
 (** To use the [apply] tactic, the (conclusion of the) fact
@@ -108,11 +129,19 @@ Proof.
     that theorem as part of your (relatively short) solution to this
     exercise. You do not need [induction]. *)
 
+
+Fixpoint rev {X:Type} (l:list X) : list X :=
+  match l with
+  | nil      => nil
+  | cons h t => app (rev t) (cons h nil)
+  end.
+
 Theorem rev_exercise1 : forall (l l' : list nat),
   l = rev l' ->
   l' = rev l.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros .
+Admitted.
 (** [] *)
 
 (** **** Exercise: 1 star, standard, optional (apply_rewrite)
@@ -181,13 +210,20 @@ Proof.
     with] does. *)
 
 Example trans_eq_example'' : forall (a b c d e f : nat),
-     [a;b] = [c;d] ->
-     [c;d] = [e;f] ->
-     [a;b] = [e;f].
+  [a;b] = [c;d] ->
+  [c;d] = [e;f] ->
+  [a;b] = [e;f].
 Proof.
   intros a b c d e f eq1 eq2.
   transitivity [c;d].
   apply eq1. apply eq2.   Qed.
+
+Definition minustwo (n : nat) : nat :=
+  match n with
+  | O => O
+  | S O => O
+  | S (S n') => n'
+  end.
 
 (** **** Exercise: 3 stars, standard, optional (trans_eq_exercise) *)
 Example trans_eq_exercise : forall (n m o p : nat),
