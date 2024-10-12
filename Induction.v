@@ -6,8 +6,7 @@
 (** Before getting started on this chapter, we need to import
     all of our definitions from the previous chapter: *)
 
-Require Export Basics.
-
+From LF Require Export Basics.
 (** For this [Require Export] command to work, Coq needs to be
     able to find a compiled version of [Basics.v], called [Basics.vo],
     in a directory associated with the prefix [LF].  This file is
@@ -571,9 +570,8 @@ Abort.
 Theorem mul_comm : forall m n : nat,
   m * n = n * m.
 Proof.
-  intros n m.
-  induction n as [| n'] eqn:E.
-   - cbn.
+Admitted.
+
 (** [] *)
 
 (** **** Exercise: 2 stars, standard, optional (plus_leb_compat_l)
@@ -582,7 +580,6 @@ Proof.
     rewrite [a] to [b] in the goal, and add [P] as a new subgoal. Use
     that in the inductive step of this exercise. *)
 
-Check leb.
 
 Theorem plus_leb_compat_l : forall n m p : nat,
   n <=? m = true -> (p + n) <=? (p + m) = true.

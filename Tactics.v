@@ -1,5 +1,5 @@
 (** * Tactics: More Basic Tactics *)
-
+From LF Require Export Poly.
 (** This chapter introduces several additional proof strategies
     and tactics that allow us to begin proving more interesting
     properties of functional programs.
@@ -21,14 +21,6 @@ Set Warnings "-notation-overridden,-parsing,-deprecated-hint-without-locality".
 (** We often encounter situations where the goal to be proved is
     _exactly_ the same as some hypothesis in the context or some
     previously proved lemma. *)
-
-Notation "x :: y" := (cons x y)
-                     (at level 60, right associativity).
-Notation "[ ]" := nil.
-Notation "[ x ; .. ; y ]" := (cons x .. (cons y []) ..).
-Notation "x ++ y" := (app x y)
-                     (at level 60, right associativity).
-
 
 Theorem silly1 : forall (n m : nat),
   n = m ->
@@ -79,25 +71,13 @@ Proof.
 
     Complete the following proof using only [intros] and [apply]. *)
 
-Fixpoint even (n:nat) : bool :=
-  match n with
-  | O        => true
-  | S O      => false
-  | S (S n') => even n'
-  end.
-    
-
-
-Definition odd (n:nat) : bool :=
-  negb (even n).
-
 Theorem silly_ex : forall p,
   (forall n, even n = true -> even (S n) = false) ->
   (forall n, even n = false -> odd n = true) ->
   even p = true ->
   odd (S p) = true.
 Proof.
-  intros p eq1 eq2 eq3. apply eq2. apply eq1. apply eq3.
+  intros n eq1 eq2 st. apply eq2. apply eq1. apply st.
 Qed. 
 (** [] *)
 
@@ -128,20 +108,17 @@ Proof.
     previously-defined theorem about [rev] from [Lists].  Use
     that theorem as part of your (relatively short) solution to this
     exercise. You do not need [induction]. *)
-
-
-Fixpoint rev {X:Type} (l:list X) : list X :=
-  match l with
-  | nil      => nil
-  | cons h t => app (rev t) (cons h nil)
-  end.
+Search [rev].
 
 Theorem rev_exercise1 : forall (l l' : list nat),
   l = rev l' ->
   l' = rev l.
 Proof.
-  intros .
-Admitted.
+  intros l l' eq.
+  rewrite eq. symmetry. 
+  apply rev_involutive.
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 1 star, standard, optional (apply_rewrite)
@@ -218,20 +195,15 @@ Proof.
   transitivity [c;d].
   apply eq1. apply eq2.   Qed.
 
-Definition minustwo (n : nat) : nat :=
-  match n with
-  | O => O
-  | S O => O
-  | S (S n') => n'
-  end.
-
 (** **** Exercise: 3 stars, standard, optional (trans_eq_exercise) *)
 Example trans_eq_exercise : forall (n m o p : nat),
      m = (minustwo o) ->
      (n + p) = m ->
      (n + p) = (minustwo o).
-Proof.
-  (* FILL IN HERE *) Admitted.
+Proof. 
+  intros n m o p eq1 eq2. transitivity m. 
+  apply eq2. apply eq1. 
+Qed.
 (** [] *)
 
 (* ################################################################# *)
@@ -275,6 +247,7 @@ Proof.
   rewrite H2. rewrite H1. simpl. reflexivity.
 Qed.
 
+Print Nat.pred.
 (** This technique can be generalized to any constructor by
     writing the equivalent of [pred] -- i.e., writing a function that
     "undoes" one application of the constructor.
@@ -318,7 +291,12 @@ Example injection_ex3 : forall (X : Type) (x y z : X) (l j : list X),
   j = z :: l ->
   x = y.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros X x y z l j H1 H2.
+  injection H1 as H11 H12.
+  rewrite H11. rewrite H2 in H12.
+  injection H12 as G.
+  rewrite G. reflexivity.
+Qed.
 (** [] *)
 
 (** So much for injectivity of constructors.  What about disjointness? *)
@@ -368,7 +346,8 @@ Example discriminate_ex3 :
     x :: y :: l = [] ->
     x = z.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros X x y z l j H. discriminate H. 
+Qed.
 (** [] *)
 
 (** For a more useful example, we can use [discriminate] to make a
@@ -441,6 +420,8 @@ Theorem S_inj : forall (n m : nat) (b : bool),
   (n =? m) = b.
 Proof.
   intros n m b H. simpl in H. apply H.  Qed.
+
+Print "=?".
 
 (** Similarly, [apply L in H] matches some conditional statement
     [L] (of the form [X -> Y], say) against a hypothesis [H] in the

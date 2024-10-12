@@ -1,5 +1,5 @@
 (** * Poly: Polymorphism and Higher-Order Functions *)
-
+From LF Require Export Lists.
 (* Final reminder: Please do not put solutions to the exercises in
    publicly accessible places.  Thank you!! *)
 

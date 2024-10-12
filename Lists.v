@@ -1,5 +1,5 @@
 (** * Lists: Working with Structured Data *)
-
+From LF Require Export Induction.
 Module NatList.
 
 (* ################################################################# *)
