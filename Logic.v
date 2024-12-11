@@ -143,7 +143,7 @@ Qed.
 Example and_exercise :
   forall n m : nat, n + m = 0 -> n = 0 /\ m = 0.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  Admitted.
 (** [] *)
 
 (** So much for proving conjunctive statements.  To go in the other
@@ -248,7 +248,8 @@ Theorem and_assoc : forall P Q R : Prop,
   P /\ (Q /\ R) -> (P /\ Q) /\ R.
 Proof.
   intros P Q R [HP [HQ HR]].
-  (* FILL IN HERE *) Admitted.
+  split. split.
+  apply HP. apply HQ. apply HR. Qed.
 (** [] *)
 
 (** Finally, the infix notation [/\] is actually just syntactic sugar for
@@ -312,14 +313,22 @@ Qed.
 Lemma mult_is_O :
   forall n m, n * m = 0 -> n = 0 \/ m = 0.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros [|n].
+  - left. reflexivity.
+  - right. destruct m as [|m'].
+    + reflexivity.
+    + inversion H.
+  Qed.
 (** [] *)
 
 (** **** Exercise: 1 star, standard (or_commut) *)
 Theorem or_commut : forall P Q : Prop,
   P \/ Q  -> Q \/ P.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros . destruct H. 
+  right. apply H. 
+  left. apply H.
+  Qed.
 (** [] *)
 
 (* ================================================================= *)
@@ -378,7 +387,8 @@ Proof.
 Theorem not_implies_our_not : forall (P:Prop),
   ~ P -> (forall (Q:Prop), P -> Q).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  unfold not. intros P H Q H0. destruct H. apply H0.
+Qed.
 (** [] *)
 
 (** Inequality is a very common form of negated statement, so there is a
